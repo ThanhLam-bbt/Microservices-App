@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout SCM') {
             steps {
-                git 'https://github.com/ThanhLam-bbt/Microservices-App.git' 
+                git branch: 'main', url: 'https://github.com/ThanhLam-bbt/Microservices-App.git'
                 echo "Checked out code successfully."
             }
         }
