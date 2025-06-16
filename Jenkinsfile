@@ -25,8 +25,8 @@ def buildAndDeployService(serviceName, dockerhubUsername) {
 
     stage("Quality Gate: ${serviceName}") {
         // Chờ kết quả phân tích từ SonarQube
-        // Timeout sau 1 phút, nếu không đạt Quality Gate sẽ fail
-        timeout(time: 2, unit: 'MINUTES') {
+        // Timeout sau 5 phút, nếu không đạt Quality Gate sẽ fail
+        timeout(time: 5, unit: 'MINUTES') {
             waitForQualityGate abortPipeline: true
         }
     }
