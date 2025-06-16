@@ -74,27 +74,22 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 // Sử dụng credential 'Secret text'
-                withCredentials([string(credentialsId: 'kubeconfig-text', variable: 'KUBECONFIG_CONTENT')]) {
-                    // Ghi nội dung kubeconfig vào một file trong workspace để kubectl sử dụng
-                    sh 'echo "$KUBECONFIG_CONTENT" > ./kubeconfig'
-
-                    // Thực thi các lệnh kubectl với file config vừa tạo
+                withCredentials([string(credentialsId: 'kubeconfig-text', variable: 'KUBECONFIG_PATH')]) {
                     sh """
-                        export KUBECONFIG=./kubeconfig
+                        export KUBECONFIG=$KUBECONFIG_PATH
 
                         echo "Updating deployment file with DockerHub username: ${env.DOCKERHUB_USERNAME}"
                         sed -i 's|<DOCKERHUB_USERNAME>|${env.DOCKERHUB_USERNAME}|g' k8s-deployment.yaml
 
-                        echo "Applying K8s manifests..."
+                        echo "Applying manifests..."
                         kubectl apply -f k8s-deployment.yaml
                         kubectl apply -f k8s-service.yaml
 
-                        echo "Waiting for deployments to roll out..."
                         kubectl rollout status deployment/user-service-deployment
                         kubectl rollout status deployment/greeting-service-deployment
 
-                        echo "Deployment successful!"
-                    """
+                        echo "Deployed successfully!"
+      """
                 }
             }
         }
