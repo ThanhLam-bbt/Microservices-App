@@ -1,4 +1,3 @@
-// Hàm để build, test, và deploy một microservice
 def buildAndDeployService(serviceName, dockerhubUsername) {
     stage("Checkout: ${serviceName}") {
         dir(serviceName) {
@@ -7,10 +6,8 @@ def buildAndDeployService(serviceName, dockerhubUsername) {
     }
 
     stage("Code Quality: ${serviceName}") {
-        // Chạy SonarQube analysis
         withSonarQubeEnv('SonarQube') {
             dir(serviceName) {
-                // Tạo file sonar-project.properties động
                 writeFile file: 'sonar-project.properties', text: """
                     sonar.projectKey=${serviceName}
                     sonar.projectName=${serviceName}
@@ -24,8 +21,6 @@ def buildAndDeployService(serviceName, dockerhubUsername) {
     }
 
     stage("Quality Gate: ${serviceName}") {
-        // Chờ kết quả phân tích từ SonarQube
-        // Timeout sau 2 phút, nếu không đạt Quality Gate sẽ fail
         timeout(time: 2, unit: 'MINUTES') {
             waitForQualityGate abortPipeline: true
         }
@@ -35,10 +30,10 @@ def buildAndDeployService(serviceName, dockerhubUsername) {
         dir(serviceName) {
             script {
                 def imageName = "${dockerhubUsername}/${serviceName}"
-                def imageTag = "latest" // hoặc "1.0.${env.BUILD_NUMBER}"
+                def imageTag = "latest" 
                 def customImage = docker.build(imageName, ".")
 
-                // Đăng nhập và đẩy image lên Docker Hub
+                
                 docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
                     customImage.push(imageTag)
                 }
@@ -51,7 +46,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USERNAME = 'lamlambbt123' // THAY THẾ BẰNG USERNAME CỦA BẠN
+        DOCKERHUB_USERNAME = 'lamlambbt123' 
     }
 
     stages {

@@ -3,8 +3,6 @@ const axios = require("axios");
 const app = express();
 const port = 3001;
 
-// URL của user-service. Trong Kubernetes, chúng ta sẽ dùng tên service.
-// Để test local, bạn có thể dùng 'http://localhost:3000'
 const userServiceUrl =
   process.env.USER_SERVICE_URL || "http://user-service-svc:3000/user";
 
