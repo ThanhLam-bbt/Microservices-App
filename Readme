@@ -1,0 +1,29 @@
+# 🚀 MICROSERVICES-APP: Ứng dụng Microservices Cơ bản
+
+Dự án này là một ứng dụng Microservices đơn giản được xây dựng để minh họa cách các dịch vụ nhỏ có thể tương tác với nhau và được triển khai tự động hóa bằng Jenkins và Kubernetes.
+
+## 🌟 Tổng quan về Ứng dụng
+
+Ứng dụng bao gồm hai dịch vụ chính, mỗi dịch vụ hoạt động độc lập nhưng cùng nhau tạo nên một chức năng hoàn chỉnh:
+
+* **User Service**: Cung cấp thông tin người dùng.
+* **Greeting Service**: Tạo lời chào dựa trên thông tin người dùng lấy từ User Service.
+
+## 📁 Cấu trúc Dự án
+
+Dự án được tổ chức theo cấu trúc thư mục sau:
+
+```
+.
+├── Jenkinsfile
+├── k8s-deployment.yaml
+├── k8s-service.yaml
+├── user-service
+│   ├── Dockerfile
+│   ├── index.js
+│   └── package.json
+└── greeting-service
+    ├── Dockerfile
+    ├── index.js
+    └── package.json
+```
