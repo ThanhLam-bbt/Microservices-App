@@ -1,0 +1,26 @@
+# Service cho user-service (nội bộ, kiểu ClusterIP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-svc
+spec:
+  selector:
+    app: user-service
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+---
+# Service cho greeting-service (bên ngoài, kiểu NodePort)
+apiVersion: v1
+kind: Service
+metadata:
+  name: greeting-service-svc
+spec:
+  selector:
+    app: greeting-service
+  type: NodePort # Expose service ra ngoài cluster
+  ports:
+    - protocol: TCP
+      port: 3001
+      targetPort: 3001
