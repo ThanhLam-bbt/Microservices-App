@@ -76,7 +76,7 @@ pipeline {
                 // Sử dụng credential 'Secret text'
                 withCredentials([string(credentialsId: 'kubeconfig-text', variable: 'KUBECONFIG_CONTENT')]) {
                     // Ghi nội dung kubeconfig vào một file trong workspace để kubectl sử dụng
-                    sh 'echo "$KUBECONFIG_CONTENT" > ./kubeconfig'
+                    writeFile file: 'kubeconfig', text: "$KUBECONFIG_CONTENT"
 
                     // Thực thi các lệnh kubectl với file config vừa tạo
                     sh """
