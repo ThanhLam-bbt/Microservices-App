@@ -74,7 +74,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 // Sử dụng credential 'Secret text'
-                withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG_PATH')]) {
+                withCredentials([file(credentialsId: 'kubeconfig-text', variable: 'KUBECONFIG_PATH')]) {
                     sh """
                         export KUBECONFIG=$KUBECONFIG_PATH
 
