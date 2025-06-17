@@ -1,29 +1,174 @@
-# 🚀 MICROSERVICES-APP: Ứng dụng Microservices Cơ bản
+Quy trình CI/CD cho Ứng dụng Microservices với Jenkins, Docker & Kubernetes
+Dự án này là một ví dụ minh họa về cách xây dựng một quy trình Tích hợp liên tục và Triển khai liên tục (CI/CD) hoàn chỉnh cho một ứng dụng microservices.
 
-Dự án này là một ứng dụng Microservices đơn giản được xây dựng để minh họa cách các dịch vụ nhỏ có thể tương tác với nhau và được triển khai tự động hóa bằng Jenkins và Kubernetes.
+Công nghệ sử dụng
+Nền tảng: Ubuntu 24.04
 
-## 🌟 Tổng quan về Ứng dụng
+Ứng dụng mẫu: Node.js (Express.js)
 
-Ứng dụng bao gồm hai dịch vụ chính, mỗi dịch vụ hoạt động độc lập nhưng cùng nhau tạo nên một chức năng hoàn chỉnh:
+Máy chủ tự động hóa: Jenkins
 
-* **User Service**: Cung cấp thông tin người dùng.
-* **Greeting Service**: Tạo lời chào dựa trên thông tin người dùng lấy từ User Service.
+Đóng gói: Docker
 
-## 📁 Cấu trúc Dự án
+Điều phối container: Kubernetes (sử dụng Minikube)
 
-Dự án được tổ chức theo cấu trúc thư mục sau:
+Phân tích chất lượng mã nguồn: SonarQube
 
-```
+(Tùy chọn) Quét bảo mật: Trivy
+
+1. Cấu trúc thư mục
 .
-├── Jenkinsfile
-├── k8s-deployment.yaml
-├── k8s-service.yaml
-├── user-service
+├── greeting-service/         # Microservice 1
 │   ├── Dockerfile
 │   ├── index.js
 │   └── package.json
-└── greeting-service
-    ├── Dockerfile
-    ├── index.js
-    └── package.json
-```
+├── user-service/             # Microservice 2
+│   ├── Dockerfile
+│   ├── index.js
+│   └── package.json
+├── k8s-deployment.yaml       # File định nghĩa Deployment cho K8s
+├── k8s-service.yaml          # File định nghĩa Service cho K8s
+├── Jenkinsfile               # "Trái tim" của pipeline CI/CD
+└── README.md                 # File hướng dẫn
+
+2. Hướng dẫn cài đặt môi trường
+Các lệnh dưới đây được thực hiện trên Ubuntu 24.04.
+
+2.1. Cài đặt Java
+Jenkins và SonarQube yêu cầu Java để hoạt động.
+
+sudo apt update
+sudo apt install openjdk-17-jre -y
+java -version
+
+2.2. Cài đặt Docker
+Sử dụng để build và quản lý container.
+
+# Cài các gói cần thiết
+sudo apt-get install ca-certificates curl gnupg
+# Thêm GPG key của Docker
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+# Thêm repository
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+# Cài đặt Docker
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin -y
+
+2.3. Cài đặt Jenkins
+Máy chủ tự động hóa để điều phối pipeline.
+
+# Thêm key và repo của Jenkins
+sudo wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+# Cài đặt
+sudo apt-get update
+sudo apt-get install jenkins -y
+# Khởi động Jenkins
+sudo systemctl start jenkins
+
+2.4. Cấp quyền Docker cho Jenkins
+sudo usermod -aG docker jenkins
+sudo systemctl restart jenkins
+
+2.5. Cài đặt SonarQube
+Chạy SonarQube dưới dạng một Docker container.
+
+docker run -d --name sonarqube -p 9000:9000 -p 9092:9092 sonarqube:lts-community
+
+2.6. Cài đặt Minikube và kubectl
+Công cụ để chạy một cluster Kubernetes local.
+
+# Cài đặt kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+# Cài đặt Minikube
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube /usr/local/bin/
+
+# Khởi động cluster
+minikube start --driver=docker
+
+3. Cấu hình ban đầu
+3.1. Cấu hình Jenkins
+Truy cập http://<IP_máy_của_bạn>:8080.
+
+Lấy mật khẩu admin ban đầu: sudo cat /var/lib/jenkins/secrets/initialAdminPassword.
+
+Chọn "Install suggested plugins" và tạo tài khoản admin.
+
+Vào Manage Jenkins > Plugins > Available plugins, cài đặt:
+
+SonarQube Scanner for Jenkins
+
+Docker Pipeline
+
+Kubernetes CLI
+
+Cấu hình SonarQube Scanner: Vào Manage Jenkins > System Configuration > Tools > SonarQube Scanner, nhấn "Add", đặt tên SonarScanner và chọn "Install automatically".
+
+Cấu hình kết nối SonarQube Server:
+
+Vào Manage Jenkins > System Configuration > System.
+
+Mục SonarQube servers: Nhấn "Add", đặt tên SonarQube, Server URL là http://<IP_máy_của_bạn>:9000.
+
+Tạo token trên SonarQube (http://<IP>:9000, login admin/admin, vào My Account > Security) và thêm vào Jenkins dưới dạng "Secret text" credential.
+
+Tạo Credentials:
+
+Docker Hub: Tạo credential loại Username with password với ID là dockerhub-credentials.
+
+Kubernetes: Tạo credential loại Secret text với ID là kubeconfig-text. Lấy nội dung bằng lệnh cat ~/.kube/config và dán vào.
+
+3.2. Chỉnh sửa file cấu hình
+Mở file Jenkinsfile.
+
+Tìm dòng DOCKERHUB_USERNAME = 'your_dockerhub_username' và thay 'your_dockerhub_username' bằng username Docker Hub của bạn.
+
+Mở file k8s-deployment.yaml.
+
+Thay tất cả các chuỗi <DOCKERHUB_USERNAME> bằng username Docker Hub của bạn. Lưu ý: Jenkinsfile cũng tự động làm việc này, nhưng sửa trước sẽ rõ ràng hơn.
+
+4. Chạy và kiểm tra
+4.1. Tạo và chạy Pipeline
+Trên Jenkins, tạo một New Item.
+
+Đặt tên, chọn Pipeline và nhấn OK.
+
+Trong phần cấu hình Pipeline, chọn Definition là Pipeline script from SCM.
+
+SCM là Git, điền URL repository của bạn.
+
+Nhấn Save.
+
+Trên trang của pipeline, nhấn Build Now để bắt đầu.
+
+4.2. Kiểm tra kết quả triển khai
+Sau khi pipeline chạy thành công (tất cả các stage đều màu xanh), hãy kiểm tra trên terminal:
+
+Kiểm tra Pods:
+
+kubectl get pods
+
+Bạn sẽ thấy 2 pods của user-service và greeting-service đang ở trạng thái Running.
+
+Kiểm tra Services:
+
+kubectl get services
+
+Bạn sẽ thấy service greeting-service-svc có Type là NodePort.
+
+Lấy URL ứng dụng:
+
+minikube service greeting-service-svc --url
+
+Truy cập ứng dụng:
+
+Lệnh trên sẽ trả về một URL (ví dụ: http://192.168.49.2:30001).
+
+Mở trình duyệt và truy cập URL này.
+
+Kết quả mong đợi: Dòng chữ Hello, Alice!.
